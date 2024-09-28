@@ -34,7 +34,7 @@ public class HoursService {
         if (specialHours != null) {
             validateTime(specialHours.getOpenTime());
             validateTime(specialHours.getCloseTime());
-            validateTimeOrder(specialHours.getOpenTime(), specialHours.getCloseTime());
+           // validateTimeOrder(specialHours.getOpenTime(), specialHours.getCloseTime());
             return new HoursDTO(specialHours.getDate(), specialHours.getOpenTime(), specialHours.getCloseTime(),
                     specialHours.getMessage());
         }
@@ -110,7 +110,7 @@ public class HoursService {
     private void validateStandardHours(StandardHours standardHours) {
         validateTime(standardHours.getOpenTime());
         validateTime(standardHours.getCloseTime());
-        validateTimeOrder(standardHours.getOpenTime(), standardHours.getCloseTime());
+        //validateTimeOrder(standardHours.getOpenTime(), standardHours.getCloseTime());
     }
 
     private void validateDate(LocalDate date) {
