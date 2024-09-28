@@ -16,121 +16,113 @@ import java.util.List;
 @Service
 public class HoursService {
 
-    @Autowired
-    private StandardHoursRepository standardHoursRepository;
+	@Autowired
+	private StandardHoursRepository standardHoursRepository;
 
-    @Autowired
-    private SpecialHoursRepository specialHoursRepository;
+	@Autowired
+	private SpecialHoursRepository specialHoursRepository;
 
-    public HoursDTO getTodayHours() {
-        LocalDate today = LocalDate.now();
-        return getHoursForDate(today);
-    }
+	public HoursDTO getTodayHours() {
+		LocalDate today = LocalDate.now();
+		return getHoursForDate(today);
+	}
 
-    public HoursDTO getHoursForDate(LocalDate date) {
-        validateDate(date);
-        SpecialHours specialHours = specialHoursRepository.findByDate(date);
-        
-        if (specialHours != null) {
-            validateTime(specialHours.getOpenTime());
-            validateTime(specialHours.getCloseTime());
-            return new HoursDTO(
-                    specialHours.getDate(),
-                    specialHours.getOpenTime(),
-                    specialHours.getCloseTime(),
-                    "Special Hours: " + specialHours.getMessage()
-            );
-        }
+	public HoursDTO getHoursForDate(LocalDate date) {
+		validateDate(date);
+		SpecialHours specialHours = specialHoursRepository.findByDate(date);
 
-        DayOfWeek dayOfWeek = DayOfWeek.valueOf(date.getDayOfWeek().name());
-        StandardHours regularHours = standardHoursRepository.findByDayOfWeek(dayOfWeek);
-        
-        if (regularHours == null) {
-            throw new RuntimeException("Regular hours not found for the specified day.");
-        }
+		if (specialHours != null) {
+			validateTime(specialHours.getOpenTime());
+			validateTime(specialHours.getCloseTime());
+			return new HoursDTO(specialHours.getDate(), specialHours.getOpenTime(), specialHours.getCloseTime(),
+					"Special Hours: " + specialHours.getMessage());
+		}
 
-        validateTime(regularHours.getOpenTime());
-        validateTime(regularHours.getCloseTime());
+		DayOfWeek dayOfWeek = DayOfWeek.valueOf(date.getDayOfWeek().name());
+		StandardHours regularHours = standardHoursRepository.findByDayOfWeek(dayOfWeek);
 
-        return new HoursDTO(
-                date,
-                regularHours.getOpenTime(),
-                regularHours.getCloseTime(),
-                "Regular hours"
-        );
-    }
+		if (regularHours == null) {
+			throw new RuntimeException("Regular hours not found for the specified day.");
+		}
 
-    public List<StandardHours> getStandardHours() {
-        return standardHoursRepository.findAll();
-    }
+		validateTime(regularHours.getOpenTime());
+		validateTime(regularHours.getCloseTime());
 
-    public List<SpecialHours> getSpecialHours() {
-        return specialHoursRepository.findByDateGreaterThanEqual(LocalDate.now());
-    }
+		return new HoursDTO(date, regularHours.getOpenTime(), regularHours.getCloseTime(), "Regular hours");
+	}
 
-    public SpecialHours addSpecialHours(SpecialHours specialHours) {
-        validateSpecialHours(specialHours);
-        return specialHoursRepository.save(specialHours);
-    }
+	public List<StandardHours> getStandardHours() {
+		return standardHoursRepository.findAll();
+	}
 
-    public SpecialHours updateSpecialHours(Long id, SpecialHours specialHours) {
-        SpecialHours existingHours = specialHoursRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Special hours not found."));
-        
-        validateTime(specialHours.getOpenTime());
-        validateTime(specialHours.getCloseTime());
-        validateMessageLength(specialHours.getMessage());
+	public List<SpecialHours> getSpecialHours() {
+		return specialHoursRepository.findByDateGreaterThanEqual(LocalDate.now());
+	}
 
-        existingHours.setOpenTime(specialHours.getOpenTime());
-        existingHours.setCloseTime(specialHours.getCloseTime());
-        existingHours.setMessage(specialHours.getMessage());
-        
-        return specialHoursRepository.save(existingHours);
-    }
+	public SpecialHours addSpecialHours(SpecialHours specialHours) {
+		validateSpecialHours(specialHours);
+		return specialHoursRepository.save(specialHours);
+	}
 
-    public void deleteSpecialHours(Long id) {
-        specialHoursRepository.deleteById(id);
-    }
+	public SpecialHours updateSpecialHours(Long id, SpecialHours specialHours) {
+		SpecialHours existingHours = specialHoursRepository.findById(id)
+				.orElseThrow(() -> new RuntimeException("Special hours not found."));
 
-    public List<StandardHours> setStandardHours(List<StandardHours> hours) {
-        hours.forEach(this::validateStandardHours);
-        return standardHoursRepository.saveAll(hours);
-    }
+		validateTime(specialHours.getOpenTime());
+		validateTime(specialHours.getCloseTime());
+		validateMessageLength(specialHours.getMessage());
 
-    // Validation Methods
-    private void validateSpecialHours(SpecialHours specialHours) {
-        if (specialHours.getDate().isBefore(LocalDate.now())) {
-            throw new IllegalArgumentException("Special hours cannot be in the past.");
-        }
-        if (specialHoursRepository.findByDate(specialHours.getDate()) != null) {
-            throw new IllegalArgumentException("Special hours already exist for this date.");
-        }
-        validateTime(specialHours.getOpenTime());
-        validateTime(specialHours.getCloseTime());
-        validateMessageLength(specialHours.getMessage());
-    }
+		existingHours.setOpenTime(specialHours.getOpenTime());
+		existingHours.setCloseTime(specialHours.getCloseTime());
+		existingHours.setMessage(specialHours.getMessage());
+		existingHours.setDate(specialHours.getDate());
 
-    private void validateStandardHours(StandardHours standardHours) {
-        validateTime(standardHours.getOpenTime());
-        validateTime(standardHours.getCloseTime());
-    }
+		return specialHoursRepository.save(existingHours);
+	}
 
-    private void validateDate(LocalDate date) {
-        if (date.isBefore(LocalDate.now())) {
-            throw new IllegalArgumentException("Date cannot be in the past.");
-        }
-    }
+	public void deleteSpecialHours(Long id) {
+		specialHoursRepository.deleteById(id);
+	}
 
-    private void validateTime(LocalTime time) {
-        if (time == null) {
-            throw new IllegalArgumentException("Time cannot be null.");
-        }
-        // Additional checks can be added if necessary, e.g., ensuring time is within business hours.
-    }
+	public List<StandardHours> setStandardHours(List<StandardHours> hours) {
+		hours.forEach(this::validateStandardHours);
+		return standardHoursRepository.saveAll(hours);
+	}
 
-    private void validateMessageLength(String message) {
-        if (message == null || message.length() > 100) {
-            throw new IllegalArgumentException("Message length cannot exceed 100 characters.");
-        }
-    }
+	// Methods For Input Validation
+	private void validateSpecialHours(SpecialHours specialHours) {
+		if (specialHours.getDate().isBefore(LocalDate.now())) {
+			throw new IllegalArgumentException("Special hours cannot be in the past.");
+		}
+		if (specialHoursRepository.findByDate(specialHours.getDate()) != null) {
+			throw new IllegalArgumentException("Special hours already exist for this date.");
+		}
+		validateTime(specialHours.getOpenTime());
+		validateTime(specialHours.getCloseTime());
+		validateMessageLength(specialHours.getMessage());
+	}
+
+	private void validateStandardHours(StandardHours standardHours) {
+		validateTime(standardHours.getOpenTime());
+		validateTime(standardHours.getCloseTime());
+	}
+
+	private void validateDate(LocalDate date) {
+		if (date.isBefore(LocalDate.now())) {
+			throw new IllegalArgumentException("Date cannot be in the past.");
+		}
+	}
+
+	private void validateTime(LocalTime time) {
+		if (time == null) {
+			throw new IllegalArgumentException("Time cannot be null.");
+		}
+
+	}
+
+	private void validateMessageLength(String message) {
+		if (message == null || message.length() > 100) {
+			throw new IllegalArgumentException("Message length cannot exceed 100 characters.");
+		}
+	}
 }

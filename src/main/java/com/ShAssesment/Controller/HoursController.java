@@ -20,6 +20,7 @@ import java.time.format.DateTimeParseException;
 import java.util.List;
 @Validated
 @RestController
+@CrossOrigin(origins = {"http://localhost:3000","https://shviewproject.vercel.app/"})
 @RequestMapping("/api/hours")
 public class HoursController {
 
