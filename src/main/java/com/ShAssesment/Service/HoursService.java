@@ -35,7 +35,7 @@ public class HoursService {
 			validateTime(specialHours.getOpenTime());
 			validateTime(specialHours.getCloseTime());
 			return new HoursDTO(specialHours.getDate(), specialHours.getOpenTime(), specialHours.getCloseTime(),
-					"Special Hours: " + specialHours.getMessage());
+					  specialHours.getMessage());
 		}
 
 		DayOfWeek dayOfWeek = DayOfWeek.valueOf(date.getDayOfWeek().name());
